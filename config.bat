@@ -81,11 +81,50 @@ set "REGFILE=%TEMP%\config_opti.reg"
     echo "Priority"=dword:00000006
     echo "Scheduling Category"="High"
     echo "SFIO Priority"="High"
+    echo.
+    echo [HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced]
+    echo "ShowTaskViewButton"=dword:00000000
+    echo "ShowSearchBoxTaskbarMode"=dword:00000000
+    echo "TaskbarDa"=dword:00000000
+    echo "TaskbarSi"=dword:00000000
+    echo.
+    echo [HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\PushNotifications]
+    echo "ToastEnabled"=dword:00000000
+    echo.
+    echo [HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\PenWorkspace]
+    echo "PenWorkspaceButtonDesiredVisibility"=dword:00000000
+    echo.
+    echo [HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager]
+    echo "SubscribedContent-310093Enabled"=dword:00000000
+    echo "SubscribedContent-338388Enabled"=dword:00000000
+    echo "SubscribedContent-338389Enabled"=dword:00000000
+    echo "SubscribedContent-353694Enabled"=dword:00000000
+    echo "SubscribedContent-353696Enabled"=dword:00000000
+    echo "SystemPaneSuggestionsEnabled"=dword:00000000
+    echo.
+    echo [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\DataCollection]
+    echo "AllowTelemetry"=dword:00000000
+    echo "MaxTelemetryAllowed"=dword:00000000
+    echo.
+    echo [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Windows Search]
+    echo "AllowCortana"=dword:00000000
+    echo.
+    echo [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Windows Feeds]
+    echo "EnableFeeds"=dword:00000000
 ) > "%REGFILE%"
 echo Importation du fichier .reg...
 reg import "%REGFILE%" >nul 2>&1
 del "%REGFILE%" >nul 2>&1
 echo OK.
+echo.
+
+:: -----------------------------------------------------------
+:: DESACTIVER DISCORD AU DEMARRAGE
+:: -----------------------------------------------------------
+echo Desactivation de Discord au demarrage...
+reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "Discord" /f >nul 2>&1
+reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "com.squirrel.Discord.Discord" /f >nul 2>&1
+echo Discord desactive au demarrage.
 echo.
 
 :: -----------------------------------------------------------
@@ -100,6 +139,10 @@ sc stop TabletInputService >nul 2>&1
 sc config TabletInputService start= disabled >nul 2>&1
 sc stop RmSvc >nul 2>&1
 sc config RmSvc start= disabled >nul 2>&1
+sc stop DiagTrack >nul 2>&1
+sc config DiagTrack start= disabled >nul 2>&1
+sc stop dmwappushservice >nul 2>&1
+sc config dmwappushservice start= disabled >nul 2>&1
 echo Services desactives.
 echo.
 
@@ -131,10 +174,10 @@ echo.
 reg add "HKCU\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32" /ve /d "" /f >nul
 echo Menu contextuel Windows 10 active.
 echo.
+
 echo ================================================================
 echo        Optimisation terminee ! (Robin Edition)
 echo  Redemarrez votre PC pour appliquer tous les changements.
 echo ================================================================
 echo.
 pause
-
