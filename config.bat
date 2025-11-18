@@ -1,8 +1,8 @@
 @echo off
-title Automatisation des manips et optimisations pour Windows 11 - Robin
+title Automatisation des manips et optimisations pour Windows 10/11 - Robin
 mode con: cols=120 lines=40
 echo ================================================================
-echo Automatisation des manips et optimisations pour Windows 11
+echo Automatisation des manips et optimisations pour Windows 10/11
 echo  - Robin
 echo ================================================================
 echo.
@@ -18,12 +18,23 @@ echo Execution en cours...
 echo.
 
 :: -----------------------------------------------------------
+:: VERIFICATION DES DROITS ADMINISTRATEUR
+:: -----------------------------------------------------------
+net session >nul 2>&1
+if %errorLevel% neq 0 (
+    echo Ce script doit etre execute en tant qu'administrateur.
+    pause
+    exit /b
+)
+
+:: -----------------------------------------------------------
 :: CREATION DU .REG INTERNE
 :: -----------------------------------------------------------
 set "REGFILE=%TEMP%\config_opti.reg"
 (
     echo Windows Registry Editor Version 5.00
     echo.
+    :: Optimisations générales
     echo [HKEY_CURRENT_USER\Control Panel\Desktop]
     echo "AutoEndTasks"="1"
     echo "HungAppTimeout"="1000"
@@ -82,12 +93,17 @@ set "REGFILE=%TEMP%\config_opti.reg"
     echo "Scheduling Category"="High"
     echo "SFIO Priority"="High"
     echo.
+    :: Masquer les éléments de la barre des tâches
     echo [HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced]
     echo "ShowTaskViewButton"=dword:00000000
     echo "ShowSearchBoxTaskbarMode"=dword:00000000
     echo "TaskbarDa"=dword:00000000
     echo "TaskbarSi"=dword:00000000
     echo.
+    echo [HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced]
+    echo "TaskbarGlomLevel"=dword:00000001
+    echo.
+    :: Désactiver les notifications
     echo [HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\PushNotifications]
     echo "ToastEnabled"=dword:00000000
     echo.
@@ -102,6 +118,7 @@ set "REGFILE=%TEMP%\config_opti.reg"
     echo "SubscribedContent-353696Enabled"=dword:00000000
     echo "SystemPaneSuggestionsEnabled"=dword:00000000
     echo.
+    :: Désactiver diagnostics et feedbacks
     echo [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\DataCollection]
     echo "AllowTelemetry"=dword:00000000
     echo "MaxTelemetryAllowed"=dword:00000000
@@ -111,6 +128,9 @@ set "REGFILE=%TEMP%\config_opti.reg"
     echo.
     echo [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Windows Feeds]
     echo "EnableFeeds"=dword:00000000
+    echo.
+    echo [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Diagnostics\DiagTrack]
+    echo "ServiceEnabled"=dword:00000000
 ) > "%REGFILE%"
 echo Importation du fichier .reg...
 reg import "%REGFILE%" >nul 2>&1
@@ -124,11 +144,13 @@ echo.
 echo Desactivation de Discord au demarrage...
 reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "Discord" /f >nul 2>&1
 reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "com.squirrel.Discord.Discord" /f >nul 2>&1
+reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "DiscordUpdater" /f >nul 2>&1
+reg delete "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v "Discord" /f >nul 2>&1
 echo Discord desactive au demarrage.
 echo.
 
 :: -----------------------------------------------------------
-:: SERVICES
+:: DESACTIVER LES SERVICES INUTILES
 :: -----------------------------------------------------------
 echo Desactivation des services...
 sc stop SysMain >nul 2>&1
@@ -159,12 +181,16 @@ echo Effets visuels optimises.
 echo.
 
 :: -----------------------------------------------------------
-:: ULTIMATE PERFORMANCE
+:: ACTIVER LE PLAN ULTIMATE PERFORMANCE
 :: -----------------------------------------------------------
 echo Activation du plan Ultimate Performance...
 powercfg -duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61 >nul
-for /f "tokens=3" %%p in ('powercfg /list ^| findstr /i e9a42b02-d5df') do set "UP=%%p"
-if defined UP powercfg /setactive %UP% >nul
+timeout /t 2 >nul
+for /f "tokens=3" %%p in ('powercfg /list ^| findstr /i "Ultimate Performance"') do (
+    set "UP=%%p"
+    echo GUID du plan Ultimate Performance : !UP!
+    powercfg /setactive !UP! >nul
+)
 echo Plan de puissance Ultimate Performance active.
 echo.
 
