@@ -13,3 +13,6 @@ la liste de logicels :
 résumé : 
 executer config.exe en mode ADMINISTRATEUR 
 executer logiciels.exe (pas besoin du mode admin)
+
+PS : il existe un lien tiny de ce repository : 
+https://tinyurl.com/auto-config
